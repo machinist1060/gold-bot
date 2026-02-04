@@ -1,14 +1,24 @@
-import os
-import requests
+def build_trader_grade_report_md(analysis, sentiment_label, sentiment_score):
+    sentiment_emoji = {
+        "bullish": "🟢",
+        "bearish": "🔴",
+        "neutral": "🟡"
+    }.get(sentiment_label.lower(), "⚪")
 
-def send_telegram_message(token, chat_id, message):
-    if not token or not chat_id:
-        print("Telegram token/chat_id not set; skipping")
-        return
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    payload = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
-    try:
-        requests.post(url, data=payload).raise_for_status()
-        print("Telegram message sent successfully.")
-    except Exception as e:
-        print(f"Error sending Telegram message: {e}")
+    return f"""*🪙 GOLD — Daily Trading Signal*
+
+*Price:* `${analysis['current']:,.2f}`  
+*Prev Close:* `${analysis['previous']:,.2f}`  
+*Change:* `{analysis['change_pct']:+.2f}%`
+
+*Trend:* {analysis['trend']} (EMA-3: `{analysis['ema3']:,.2f}`)  
+*Signal Strength:* *{analysis['strength']}*
+
+*Action:* *{analysis['action']}* {analysis['emoji']}  
+*Confidence:* *{analysis['confidence']}%*
+
+*News Sentiment:* *{sentiment_label.capitalize()}* {sentiment_emoji}  
+_Score: {sentiment_score:.2f}_
+"""
+parse_mode="Markdown"
+
