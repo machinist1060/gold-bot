@@ -1,24 +1,33 @@
-def build_trader_grade_report_md(analysis, sentiment_label, sentiment_score):
-    sentiment_emoji = {
-        "bullish": "🟢",
-        "bearish": "🔴",
-        "neutral": "🟡"
-    }.get(sentiment_label.lower(), "⚪")
+# telegram_notify.py
+import requests
 
-    return f"""*🪙 GOLD — Daily Trading Signal*
+def send_telegram_message(chat_id: str, token: str, message: str, parse_mode: str = "Markdown"):
+    """
+    Send a Telegram message via bot API.
 
-*Price:* `${analysis['current']:,.2f}`  
-*Prev Close:* `${analysis['previous']:,.2f}`  
-*Change:* `{analysis['change_pct']:+.2f}%`
+    Args:
+        chat_id (str): Telegram chat ID to send the message to.
+        token (str): Telegram bot token.
+        message (str): The message text (Markdown formatting supported).
+        parse_mode (str, optional): Markdown/MarkdownV2/HTML. Defaults to "Markdown".
 
-*Trend:* {analysis['trend']} (EMA-3: `{analysis['ema3']:,.2f}`)  
-*Signal Strength:* *{analysis['strength']}*
+    Returns:
+        dict: JSON response from Telegram API.
 
-*Action:* *{analysis['action']}* {analysis['emoji']}  
-*Confidence:* *{analysis['confidence']}%*
+    Raises:
+        Exception: If Telegram API returns an error.
+    """
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": parse_mode
+    }
 
-*News Sentiment:* *{sentiment_label.capitalize()}* {sentiment_emoji}  
-_Score: {sentiment_score:.2f}_
-"""
-parse_mode="Markdown"
+    try:
+        response = requests.post(url, data=payload)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        raise Exception(f"Telegram send failed: {e}")
 
+    return response.json()
