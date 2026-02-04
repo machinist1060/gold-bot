@@ -1,6 +1,5 @@
-streamlit
 yfinance
 pandas
 requests
-beautifulsoup4
 nltk
+streamlit

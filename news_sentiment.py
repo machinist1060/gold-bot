@@ -1,14 +1,16 @@
 import os
 import requests
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import nltk
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-nltk.download('vader_lexicon')
+nltk.download("vader_lexicon")
 sia = SentimentIntensityAnalyzer()
 
 NEWSAPI_KEY = os.getenv("NEWSAPI_KEY")
 
 def fetch_gold_news():
+    if not NEWSAPI_KEY:
+        return []
     url = "https://newsapi.org/v2/everything"
     params = {
         "q": "gold OR XAU OR 'precious metals'",
@@ -18,16 +20,17 @@ def fetch_gold_news():
         "apiKey": NEWSAPI_KEY
     }
     try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        return response.json().get("articles", [])
-    except:
+        resp = requests.get(url, params=params, timeout=10)
+        resp.raise_for_status()
+        return resp.json().get("articles", [])
+    except Exception as e:
+        print(f"Error fetching news: {e}")
         return []
 
 def analyze_news_sentiment(articles):
     sentiments = []
     for article in articles:
-        text = (article.get("title", "") + " " + article.get("description", "")).strip()
+        text = (article.get("title","") + " " + article.get("description","")).strip()
         if text:
             sentiments.append(sia.polarity_scores(text)["compound"])
     if sentiments:
